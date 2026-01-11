@@ -64,9 +64,14 @@ const Gateway: React.FC = () => {
             <h2 className="text-2xl font-semibold tracking-tight">Educator Login</h2>
             <p className="text-gray-400 font-light text-sm">For active school partners.</p>
           </div>
-          <button className="w-full py-4 bg-thynk-black text-white rounded-full text-[10px] font-bold tracking-widest hover:bg-gray-900 transition-colors uppercase">
+          <a 
+            href="https://makerspacelogin.netlify.app/#/login"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-4 bg-thynk-black text-white rounded-full text-[10px] font-bold tracking-widest hover:bg-gray-900 transition-colors uppercase text-center"
+          >
             ENTER THE MAKERSPACE
-          </button>
+          </a>
         </div>
 
         {/* Exemplar Access Card */}
