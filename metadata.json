@@ -1,5 +1,8 @@
 {
-  "name": "THYNKLAB Login Portal",
-  "description": "A high-fidelity, branded login experience for THYNKLAB, featuring modern UI components and responsive design.",
-  "requestFramePermissions": []
+  "name": "Preview Access",
+  "description": "Thynklab Skeleton",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
 }
