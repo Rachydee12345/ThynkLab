@@ -1,80 +1,54 @@
 
-import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import Portal from './pages/Portal';
-import UnitPlans from './pages/UnitPlans';
-import DesignCycles from './pages/DesignCycles';
-import Services from './pages/Services';
-import Contact from './pages/Contact';
-import Gateway from './pages/Gateway';
-import PasswordProtect from './components/PasswordProtect';
-import { SectionProvider } from './context/SectionContext';
-import StickySectionLabel from './components/StickySectionLabel';
+import React, { useEffect } from 'react';
+import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
+import Dashboard from './pages/Dashboard';
+import { supabase } from './supabaseClient';
 
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
-  React.useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
-};
-
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const AuthObserver: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const navigate = useNavigate();
   const location = useLocation();
-  const isHome = location.pathname === '/';
 
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      {isHome && <StickySectionLabel />}
-      <main className="flex-grow pt-[60px]">
-        {children}
-      </main>
-      <Footer />
-    </div>
-  );
+  useEffect(() => {
+    // Listen for auth state changes (crucial for OAuth flows)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        // If we are on login or signup, go to dashboard
+        if (location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/') {
+          navigate('/dashboard', { replace: true });
+        }
+      } else {
+        // If no session and not on login/signup, force login
+        if (location.pathname !== '/login' && location.pathname !== '/signup') {
+          navigate('/login', { replace: true });
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, location]);
+
+  return <>{children}</>;
 };
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
-
-  useEffect(() => {
-    const auth = sessionStorage.getItem('thynk_preview_auth');
-    if (auth === 'true') {
-      setIsAuthenticated(true);
-    }
-    setIsChecking(false);
-  }, []);
-
-  if (isChecking) {
-    return <div className="min-h-screen bg-white" />;
-  }
-
-  if (!isAuthenticated) {
-    return <PasswordProtect onAuthenticated={() => setIsAuthenticated(true)} />;
-  }
-
   return (
-    <SectionProvider>
-      <HashRouter>
-        <ScrollToTop />
-        <Layout>
+    <HashRouter>
+      <AuthObserver>
+        <div className="min-h-screen font-sans">
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/digital-makerspace" element={<Portal />} />
-            <Route path="/unit-plans" element={<UnitPlans />} />
-            <Route path="/design-cycles" element={<DesignCycles />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/gateway" element={<Gateway />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/teacher-dashboard" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
-        </Layout>
-      </HashRouter>
-    </SectionProvider>
+        </div>
+      </AuthObserver>
+    </HashRouter>
   );
 };
 
